@@ -4,10 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PointF;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.example.yeguangrong.drawanimation.R;
+import com.example.yeguangrong.drawanimation.utils.DeviceUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,32 +28,15 @@ public class BubbleView extends View{
 
     public static final int MSG_HIDE = 0;
     public static final int MSG_SHOW = 1;
-    public static final int MSG_BACK = 2;
-    
-    private DrawTask mDrawTask;
+
     private Bitmap bitmap;
-    private Matrix matrix;
     private Random mRandom;
     private boolean mIsStart = false;
-    private float dx = 500;
-    private float dy = 0;
-    private boolean isToLeft;//
-    private boolean isToRight;//
-    private boolean isStartSwitch = false;
 
-    //气泡区域
-    private int mWitdth = 500;
-    private int mHeight = 1200;
-
-    private int [] pointsX = {100,400,700,1000};
-    private int [] pointsY = {200,600,1000,1400};
+    private int mWitdth = DeviceUtil.getScreenWidth(getContext());
+    private int mHeight = 1200;//DeviceUtil.getScreenHeight(getContext());
 
     private Paint mPaint;
-    private Paint mPaint2;
-
-    private Path mPath;
-    private boolean mIsTouchUp = false;
-    private boolean mIsInit = true;
 
     private List<Bubble> mBubbles = new ArrayList<Bubble>();
     
@@ -78,22 +59,9 @@ public class BubbleView extends View{
     }
     
     private void init(){
+
         bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.praise_eight);
         mRandom = new Random();
-        matrix = new Matrix();
-
-        mPaint = new Paint();
-        mPaint.setColor(Color.BLUE);
-        mPaint.setAntiAlias(true);
-        mPaint.setStrokeWidth(2);
-        mPaint.setStyle(Paint.Style.STROKE);
-
-        mPaint2 = new Paint();
-        mPaint2.setColor(Color.BLACK);
-        mPaint2.setStrokeWidth(10);
-        mPaint2.setStyle(Paint.Style.FILL);
-
-        mPath = new Path();
 
     }
 
@@ -156,7 +124,7 @@ public class BubbleView extends View{
 
         public void init(){
 
-            startPoint = new PointF(500,0);
+            startPoint = new PointF(mWitdth/2,0);
             secondPoint = getRandomPoint(1);
 
             thirdPoint = getRandomPoint(2);
@@ -185,7 +153,7 @@ public class BubbleView extends View{
 
         PointF pointF = new PointF();
         float random = mRandom.nextFloat() * 2 - 1;
-        pointF.x = random*mWitdth + mWitdth;
+        pointF.x = random*mWitdth/2 + mWitdth/2;
         switch (index){
             case 1:
                 pointF.y = 200 + 400*mRandom.nextFloat();
