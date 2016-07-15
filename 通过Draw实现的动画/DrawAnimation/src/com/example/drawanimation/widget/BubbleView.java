@@ -67,18 +67,18 @@ public class BubbleView extends View{
             float xx = (float) (Math.random() * 5);//mRandom.nextFloat()*10-5;
             Log.e("random", "x = "+xx);
             if(dy<300){
-                dx = dx + 5;
+                dx = dx + 300;
             }
             if(dy>=300 && dy<600){
-                dx = dx - 5;
+                dx = dx - 300;
             }
             if(dy>=600 && dy<=900){
-                dx = dx + 5;
+                dx = dx + 300;
             }
             if(dy>=900 && dy<=1020){
-                dx = dx - 5;
+                dx = dx - 300;
             }
-            dy = dy + 5;
+            dy = dy + 300;
             
             matrix.setTranslate(dx, dy);
             
@@ -86,7 +86,7 @@ public class BubbleView extends View{
             if(dx > 600 || dy > 1020){
                 mHandler.sendEmptyMessage(MSG_HIDE);
             }else{
-                mHandler.sendEmptyMessageDelayed(MSG_SHOW, 10);
+                mHandler.sendEmptyMessageDelayed(MSG_SHOW, 400);
             }
         }
     }
