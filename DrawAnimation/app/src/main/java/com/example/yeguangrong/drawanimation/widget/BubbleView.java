@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * 通过绘制的方式实现气泡动画  PS:对于每个新生成的气泡都会以贝塞尔曲线的轨迹进行运动
+ * 通过绘制的方式实现气泡动画  PS:对于每个新生成的气泡都会以贝塞尔曲线的轨迹进行运动，该实现方式只能从主线程中显示动画
  * @author yeguangrong
  *
  */
@@ -80,10 +80,9 @@ public class BubbleView extends View{
                 bubble.update(bubble);
                 canvas.restore();
                 if(bubble.dy > mHeight){
-//                    mHandler.sendEmptyMessage(MSG_HIDE);
-                    Log.e("remove", "remove = " + i);
                     mBubbles.remove(bubble);
-                    invalidate();
+                    mHandler.sendEmptyMessage(MSG_HIDE);
+//                    invalidate();
                 }else{
                     mHandler.sendEmptyMessageDelayed(MSG_SHOW, 0);
 
@@ -100,6 +99,8 @@ public class BubbleView extends View{
      * @return
      */
     private float getBezierX(float y, Bubble bubble) {
+
+        //3阶贝塞尔公式
         return bubble.startPoint.x*(1-y)*(1-y) + 3*bubble.secondPoint.x*y*(1-y)*(1-y) + 3*bubble.thirdPoint.x*y*y*(1-y) + bubble.endPoints.x*y*y*y;
     }
 
@@ -124,7 +125,7 @@ public class BubbleView extends View{
 
         public void init(){
 
-            startPoint = new PointF(mWitdth/2,0);
+            startPoint = new PointF(mWitdth/4,0);
             secondPoint = getRandomPoint(1);
 
             thirdPoint = getRandomPoint(2);
@@ -152,8 +153,8 @@ public class BubbleView extends View{
     private PointF getRandomPoint(int index){
 
         PointF pointF = new PointF();
-        float random = mRandom.nextFloat() * 2 - 1;
-        pointF.x = random*mWitdth/2 + mWitdth/2;
+        float random = mRandom.nextFloat() * 2 - 1;//获取[-1,1]范围内的随机数
+        pointF.x = random*mWitdth/4 + mWitdth/4;
         switch (index){
             case 1:
                 pointF.y = 200 + 400*mRandom.nextFloat();
@@ -188,6 +189,7 @@ public class BubbleView extends View{
                 case MSG_HIDE:
                     mHandler.removeMessages(MSG_HIDE);
                     mIsStart = false;
+                    invalidate();
                     break;
                 default:
                     break;
@@ -195,20 +197,20 @@ public class BubbleView extends View{
         }  
     };
 
-    class DrawTask implements Runnable{
-
-        @Override
-        public void run() {
-            // TODO Auto-generated method stub
-            
-        }
-        
-    }
-
     public void showBubble(){
         Bubble bubble = new Bubble();
         mBubbles.add(bubble);
         mHandler.sendEmptyMessage(MSG_SHOW);
+    }
+
+    /**
+     * 清空气泡
+     */
+    public void clearBubble(){
+        if (mBubbles.size() > 0){
+            mBubbles.clear();
+        }
+        mHandler.sendEmptyMessage(MSG_HIDE);
     }
 
 }

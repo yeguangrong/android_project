@@ -10,8 +10,9 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true">
 
-        <com.example.yeguangrong.drawanimation.widget.BubbleView
+        <com.example.yeguangrong.drawanimation.widget.BubbleSurfaceView
             android:id="@+id/bubble_view"
+            android:background="#ffffff"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </FrameLayout>
@@ -20,6 +21,7 @@
         android:layout_alignParentBottom="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:visibility="gone"
         android:src="@drawable/ic_launcher"/>
 
 </RelativeLayout>
