@@ -3,21 +3,17 @@ package com.example.yeguangrong.drawanimation.widget;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PointF;
-import android.graphics.PorterDuff;
-import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.example.yeguangrong.drawanimation.R;
+import com.example.yeguangrong.drawanimation.logic.DrawBubbleThread;
 import com.example.yeguangrong.drawanimation.utils.DeviceUtil;
 
 import java.util.ArrayList;
@@ -73,7 +69,7 @@ public class BubbleSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         mSurfaceHolder = this.getHolder();
         mSurfaceHolder.addCallback(this);
-        mDrawBubbleTask = new DrawBubbleThread(mSurfaceHolder,this);
+        mDrawBubbleTask = new DrawBubbleThread(mSurfaceHolder,this,mBubbles,bitmap);
 
     }
 
@@ -94,100 +90,37 @@ public class BubbleSurfaceView extends SurfaceView implements SurfaceHolder.Call
     }
 
     /**
-     * 绘制气泡的线程
+     * 用户点击产生气泡的入口
      */
-    class DrawBubbleThread extends Thread{
+    public void showBubble(){
 
-        Handler mHandler = null;
-        SurfaceHolder mSurfaceHolder;
-        private BubbleSurfaceView mBubbleSurfaceView;
+        mIsStart = true;
+        Bubble bubble = new Bubble();
+        mBubbles.add(bubble);
+        Log.e("thread","bubbleNum = "+mBubbles.size());
 
-        Canvas canvas = null;
-
-        public DrawBubbleThread(SurfaceHolder surfaceHolder, BubbleSurfaceView bubbleSurfaceView){
-
-            mSurfaceHolder = surfaceHolder;
-            mBubbleSurfaceView = bubbleSurfaceView;
-
-        }
-
-        @Override
-        public void run() {
-
-            Looper.prepare();//为子线程创建消息队列
-
-            mLooper = Looper.myLooper();
-
-            mHandler =  new Handler(mLooper){
-                @Override
-                public void handleMessage(Message msg) {
-                    switch (msg.what) {
-                        case MSG_SHOW:
-                            doDraw();
-                            break;
-                        case MSG_HIDE:
-                            mHandler.removeMessages(MSG_HIDE);
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            };
-
-            Looper.loop();//启动子线程的消息队列
-
-            showBubble();
-        }
-
-        //在子线程内发送绘制气泡的消息
-        public void showBubble(){
-            mHandler.sendEmptyMessageDelayed(MSG_SHOW,30);
-        }
-
-        /**
-         * 真正在画布上执行绘制
-         */
-        private void doDraw(){
-
-            synchronized (mSurfaceHolder){
-                canvas = mSurfaceHolder.lockCanvas();
-                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);//清空气泡轨迹
-
-                mIsStart = true;
-                for (int i = 0; i< mBubbles.size();i++){
-                    Bubble bubble = mBubbles.get(i);
-
-                    canvas.save();
-                    canvas.drawBitmap(bitmap, bubble.dx, bubble.dy, null);
-                    bubble.update(bubble);
-                    canvas.restore();
-
-                    if (bubble.dy >= 1200){
-                        mBubbles.remove(bubble);
-                    }
-                    mHandler.sendEmptyMessageDelayed(MSG_SHOW,30);
-                }
-
-                mSurfaceHolder.unlockCanvasAndPost(canvas);
-            }
-
-
-
+        if (!mDrawBubbleTask.isAlive()){
+            Log.e("thread","thread start");
+            mDrawBubbleTask.start();
+        }else {
+            mDrawBubbleTask.showBubble();
         }
 
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        // TODO Auto-generated method stub
-        super.onDraw(canvas);
-
+    /**
+     * 清空气泡
+     */
+    public void clearBubble(){
+        if (mBubbles.size() > 0){
+            mBubbles.clear();
+        }
     }
 
     /**
      * 每个气泡类对象
      */
-    private class Bubble{
+    public class Bubble{
 
         private PointF startPoint;//起始点
         private PointF secondPoint;//第二个点
@@ -235,61 +168,35 @@ public class BubbleSurfaceView extends SurfaceView implements SurfaceHolder.Call
             return bubble.startPoint.x*(1-y)*(1-y) + 3*bubble.secondPoint.x*y*(1-y)*(1-y) + 3*bubble.thirdPoint.x*y*y*(1-y) + bubble.endPoints.x*y*y*y;
         }
 
-    }
+        /**
+         * 获取随机的点
+         * @param index 区分第几个点
+         * @return
+         */
+        private PointF getRandomPoint(int index){
 
-    /**
-     * 获取随机的点
-     * @param index 区分第几个点
-     * @return
-     */
-    private PointF getRandomPoint(int index){
+            PointF pointF = new PointF();
+            float random = mRandom.nextFloat() * 2 - 1;//获取[-1,1]范围内的随机数
+            pointF.x = random*mWitdth/4 + mWitdth/4;
+            switch (index){
+                case 1:
+                    pointF.y = 200 + 400*mRandom.nextFloat();
+                    break;
+                case 2:
+                    pointF.y = 600 + 400*mRandom.nextFloat();
+                    break;
+                default:
+                    pointF.y = 1200;
+                    break;
+            }
 
-        PointF pointF = new PointF();
-        float random = mRandom.nextFloat() * 2 - 1;//获取[-1,1]范围内的随机数
-        pointF.x = random*mWitdth/4 + mWitdth/4;
-        switch (index){
-            case 1:
-                pointF.y = 200 + 400*mRandom.nextFloat();
-                break;
-            case 2:
-                pointF.y = 600 + 400*mRandom.nextFloat();
-                break;
-            default:
-                pointF.y = 1200;
-                break;
-        }
+            Log.e("point", "secondX = " + pointF.x + " secondY = " + pointF.y);
 
-        Log.e("point", "secondX = " + pointF.x + " secondY = " + pointF.y);
+            return pointF;
 
-        return pointF;
-
-    }
-
-    /**
-     * 用户点击产生气泡的入口
-     */
-    public void showBubble(){
-
-        mIsStart = true;
-        Bubble bubble = new Bubble();
-        mBubbles.add(bubble);
-
-        if (!mDrawBubbleTask.isAlive()){
-            Log.e("thread","thread start");
-            mDrawBubbleTask.start();
-        }else {
-            mDrawBubbleTask.showBubble();
         }
 
     }
 
-    /**
-     * 清空气泡
-     */
-    public void clearBubble(){
-        if (mBubbles.size() > 0){
-            mBubbles.clear();
-        }
-    }
 
 }
